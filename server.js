@@ -21,17 +21,34 @@ const stockSchema = new mongoose.Schema({
     company: String,
     description: String,
     initial_price: Number,
-    price_2002: Number,
-    price_2007: Number,
     symbol: String,
 });
 
 const Stock = mongoose.model("Stock", stockSchema);
 
+const watchlistSchema = new mongoose.Schema({
+    company: String,
+    description: String,
+    initial_price: Number,
+    symbol: String,
+});
+
+const Watchlist = mongoose.model("Watchlist", watchlistSchema);
+
 app.get("/api/stocks", async (req, res) => {
     try {
         const stocks = await Stock.find();
         res.json(stocks);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: "Internal Server Error" });
+    }
+});
+
+app.get("/api/watchlist", async (req, res) => {
+    try {
+        const watchlist = await Watchlist.find();
+        res.json(watchlist);
     } catch (error) {
         console.error(error);
         res.status(500).json({ error: "Internal Server Error" });
@@ -44,25 +61,42 @@ app.post("/api/watchlist", async (req, res) => {
             company,
             description,
             initial_price,
-            price_2002,
-            price_2007,
             symbol,
         } = req.body;
-        const stock = new Stock({
+        const watchlist = new Watchlist({
             company,
             description,
             initial_price,
-            price_2002,
-            price_2007,
             symbol,
         });
-        await stock.save();
-        res.json({ message: "Stock added to watchlist successfully" });
+        await watchlist.save();
+        res.json({
+            message: "Stock added to watchlist successfully"
+        });
     } catch (error) {
         console.error(error);
         res.status(500).json({ error: "Internal Server Error" });
     }
 });
+
+app.delete("/api/watchlist/:symbol", async (req, res) => {
+    try {
+        const { symbol } = req.params;
+        const deletedStock = await Watchlist.findOneAndDelete({ symbol });
+        const watchlist = await Watchlist.find();
+        if (deletedStock) {
+            res.json({
+                watchlist,
+                message: "Stock removed from watchlist successfully"
+            });
+        } else {
+            res.status(404).json({ error: "Stock not found" });
+        }
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: "Internal Server Error" });
+    }
+})
 
 app.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`);
