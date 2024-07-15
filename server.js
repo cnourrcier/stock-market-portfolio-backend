@@ -63,6 +63,13 @@ app.post("/api/watchlist", async (req, res) => {
             initial_price,
             symbol,
         } = req.body;
+
+        const alreadyInWatchlist = await Watchlist.find({ symbol });
+        if (alreadyInWatchlist.length) {
+            return res.json({
+                message: "Stock is already in watchlist"
+            })
+        }
         const watchlist = new Watchlist({
             company,
             description,
