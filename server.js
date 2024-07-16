@@ -37,7 +37,15 @@ const Watchlist = mongoose.model("Watchlist", watchlistSchema);
 
 app.get("/api/stocks", async (req, res) => {
     try {
-        const stocks = await Stock.find();
+        const { sortBy, minPrice, maxPrice } = req.query;
+        let filter = {};
+        if (minPrice) filter.initial_price = { $gte: Number(minPrice) };
+        if (maxPrice) filter.initial_price = filter.initial_price ? { ...filter.initial_price, $lte: Number(maxPrice) } : { $lte: Number(maxPrice) };
+
+        let stocks = await Stock.find(filter);
+        if (sortBy) {
+            stocks = stocks.sort((a, b) => a[sortBy] > b[sortBy] ? 1 : -1);
+        }
         res.json(stocks);
     } catch (error) {
         console.error(error);
@@ -47,7 +55,15 @@ app.get("/api/stocks", async (req, res) => {
 
 app.get("/api/watchlist", async (req, res) => {
     try {
-        const watchlist = await Watchlist.find();
+        const { sortBy, minPrice, maxPrice } = req.query;
+        let filter = {};
+        if (minPrice) filter.initial_price = { $gte: Number(minPrice) };
+        if (maxPrice) filter.initial_price = filter.initial_price ? { ...filter.initial_price, $lte: Number(maxPrice) } : { $lte: Number(maxPrice) };
+
+        let watchlist = await Watchlist.find(filter);
+        if (sortBy) {
+            watchlist = watchlist.sort((a, b) => a[sortBy] > b[sortBy] ? 1 : -1);
+        }
         res.json(watchlist);
     } catch (error) {
         console.error(error);
